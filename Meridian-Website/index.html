@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meridian | Distraction-Free Writing</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="shortcut icon" href="favicon.ico">
+    <meta name="description" content="Find your focus and write without limits with Meridian. A beautiful, distraction-free writing app for Windows and Mac.">
+    <link rel="canonical" href="https://trymeridianwriter.com">
+    <meta property="og:title" content="Meridian | Distraction-Free Writing Studio">
+    <meta property="og:description" content="Find your focus and write without limits with Meridian. A beautiful, distraction-free writing app for Windows and Mac.">
+    <meta property="og:url" content="https://trymeridianwriter.com">
+    <meta property="og:type" content="website">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i data-lucide="feather" class="logo-icon"></i>
+                <span class="logo-text">Meridian</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <button id="theme-toggle" class="btn btn-outline btn-sm btn-icon" aria-label="Toggle theme">
+                    <i data-lucide="sun" class="theme-icon-light"></i>
+                    <i data-lucide="moon" class="theme-icon-dark"></i>
+                </button>
+                <a href="#download" class="btn btn-outline btn-sm">Get App</a>
+            </div>
+        </div>
+    </nav>
+
+    <header id="hero" class="hero">
+        <div class="container hero-content">
+            <div class="badge fade-in">100% Free & Open</div>
+            <h1 class="hero-title fade-in delay-1">Find your focus.<br>Write without limits.</h1>
+            <p class="hero-subtitle fade-in delay-2">
+                Modern writing apps are bloated with thousands of menus and subscriptions. 
+                Meridian strips all of that away to leave you with one thing: the blank page.
+            </p>
+            <div class="hero-actions fade-in delay-3">
+                <a href="downloads/Meridian-Setup.exe" download class="btn btn-primary btn-lg download-win-btn">
+                    <i data-lucide="monitor"></i>
+                    <div>
+                        Download for Windows
+                        <span class="btn-subtext">.exe • Windows 10/11 (64-bit)</span>
+                    </div>
+                </a>
+                <a href="downloads/Meridian-Mac.dmg" download class="btn btn-secondary btn-lg download-mac-btn">
+                    <i data-lucide="apple"></i>
+                    <div>
+                        Download for Apple (Mac)
+                        <span class="btn-subtext">.dmg • macOS 10.15+ (M1/M2/M3 & Intel)</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- App Preview Carousel -->
+        <div class="carousel-container fade-in delay-4">
+            <div class="carousel-window">
+                <div class="carousel-track" id="carousel-track">
+                    <div class="carousel-slide active">
+                        <img src="images/focus_mode.png" alt="Atmospheric Focus Writing Mode">
+                        <div class="slide-caption">
+                            <h3>Focus Mode</h3>
+                            <p>Distraction-free environment with customizable ambient noise and tactile typewriter sound profiles.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="images/compiler.png" alt="Manuscript Compiler export menu">
+                        <div class="slide-caption">
+                            <h3>Manuscript Compiler</h3>
+                            <p>Export your book to PDF, ePUB, Word, or Markdown with professional layout sizes and styles.</p>
+                        </div>
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="images/stats.png" alt="Daily habits and statistics calendar dashboard">
+                        <div class="slide-caption">
+                            <h3>Writing Analytics</h3>
+                            <p>Track daily streaks, words written, average writing speed (WPM), and view your progress on a calendar grid.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controls -->
+                <button class="carousel-control prev" id="carousel-prev" aria-label="Previous slide">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+                <button class="carousel-control next" id="carousel-next" aria-label="Next slide">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+                
+                <!-- Indicators -->
+                <div class="carousel-indicators" id="carousel-indicators">
+                    <span class="indicator active" data-index="0"></span>
+                    <span class="indicator" data-index="1"></span>
+                    <span class="indicator" data-index="2"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title reveal">Built for Deep Work</h2>
+            <p class="section-subtitle reveal">Everything you need to hit your word counts, and absolutely nothing else.</p>
+            
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i data-lucide="headphones"></i></div>
+                    <h3>Immersive Audio</h3>
+                    <p>Block out the world with built-in ambient noise (rain, cafe) and tactile typewriter sound profiles.</p>
+                </div>
+                <div class="feature-card reveal delay-1">
+                    <div class="feature-icon"><i data-lucide="hard-drive"></i></div>
+                    <h3>Local-First Privacy</h3>
+                    <p>No forced accounts or cloud lock-in. Your files are automatically saved securely to your local machine.</p>
+                </div>
+                <div class="feature-card reveal delay-2">
+                    <div class="feature-icon"><i data-lucide="flame"></i></div>
+                    <h3>Danger Mode</h3>
+                    <p>Need an extreme push? Turn on Danger Mode—if you stop typing for more than a few seconds, your text starts fading away!</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i data-lucide="bar-chart-2"></i></div>
+                    <h3>Writing Analytics</h3>
+                    <p>Track your daily streaks, average words-per-minute, and set time or word count goals for specific sessions.</p>
+                </div>
+                <div class="feature-card reveal delay-1">
+                    <div class="feature-icon"><i data-lucide="moon"></i></div>
+                    <h3>Beautiful Aesthetics</h3>
+                    <p>Instantly toggle between a crisp Light Mode and a gorgeous, sophisticated Dark Mode to suit your environment.</p>
+                </div>
+                <div class="feature-card reveal delay-2">
+                    <div class="feature-icon"><i data-lucide="file-output"></i></div>
+                    <h3>One-Click Compile</h3>
+                    <p>Export your books and documents instantly to EPUB, PDF, Word (.docx), Markdown, and HTML.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="cta-section">
+        <div class="container cta-container reveal">
+            <div class="badge">Cross-Platform</div>
+            <h2>Ready to find your flow?</h2>
+            <p>Download Meridian for Windows or Apple macOS—100% free & open.</p>
+            
+            <div class="download-cards-grid">
+                <div class="download-card">
+                    <div class="platform-icon"><i data-lucide="monitor"></i></div>
+                    <h3>Windows</h3>
+                    <p class="platform-meta">Windows 10 & 11 (64-bit)</p>
+                    <div class="download-btn-group">
+                        <a href="downloads/Meridian-Setup.exe" download class="btn btn-primary btn-md download-win-btn">
+                            <i data-lucide="download"></i> Download .exe
+                        </a>
+                        <a href="downloads/Meridian-Windows.zip" download class="btn btn-outline btn-sm">
+                            <i data-lucide="file-archive"></i> Download .zip (Safe Archive)
+                        </a>
+                    </div>
+                </div>
+                <div class="download-card">
+                    <div class="platform-icon"><i data-lucide="apple"></i></div>
+                    <h3>Apple macOS</h3>
+                    <p class="platform-meta">macOS 10.15+ (Apple Silicon & Intel)</p>
+                    <div class="download-btn-group">
+                        <a href="downloads/Meridian-Mac.dmg" download class="btn btn-primary btn-md download-mac-btn">
+                            <i data-lucide="download"></i> Download .dmg
+                        </a>
+                        <a href="downloads/Meridian-Mac.zip" download class="btn btn-outline btn-sm">
+                            <i data-lucide="file-archive"></i> Download .zip (Safe Archive)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust / Installation Guide Callout -->
+            <div class="trust-notice">
+                <div class="trust-notice-header">
+                    <i data-lucide="shield-alert"></i>
+                    <span>Getting a "Dangerous file" or SmartScreen warning?</span>
+                </div>
+                <p>
+                    Because Meridian is a free open-source app and does not use a paid corporate certificate, Chrome & Windows SmartScreen may flag new <code>.exe</code> / <code>.dmg</code> downloads.
+                </p>
+                <div class="trust-steps">
+                    <div class="trust-step">
+                        <strong>Chrome / Edge:</strong> Click <code>...</code> next to file &rarr; Select <strong>Keep</strong> &rarr; <strong>Keep anyway</strong>.
+                    </div>
+                    <div class="trust-step">
+                        <strong>Windows SmartScreen:</strong> Click <strong>More info</strong> &rarr; Click <strong>Run anyway</strong>.
+                    </div>
+                    <div class="trust-step">
+                        <strong>macOS Gatekeeper:</strong> Right-click <code>.dmg</code> &rarr; Select <strong>Open</strong> &rarr; Click <strong>Open</strong>.
+                    </div>
+                </div>
+                <div style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                    💡 <em>Tip: Downloading the <strong>.zip</strong> version bypasses executable warnings!</em>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo">
+                    <i data-lucide="feather" class="logo-icon"></i>
+                    <span class="logo-text">Meridian</span>
+                </div>
+                <div class="footer-links">
+                    <span>© 2026 Meridian</span>
+                    <a href="https://namle5696.gumroad.com/l/zmdin" target="_blank">Support the Developer</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="script.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

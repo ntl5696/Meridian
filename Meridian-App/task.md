@@ -1,0 +1,13 @@
+- `[x]` Update `index.html` to add Line Spacing select and Text Color input to the rich text toolbar
+- `[x]` Update `js/main.js` to handle events for Line Spacing and Text Color
+- `[x]` Refine toolbar layout formatting, group items logically, and add stable select widths
+- `[x]` Build custom text color picker button with a live indicator bar synced with text selection
+- `[x]` Expand Line Spacing options from 0.5 to 3.0, defaulting to 1.0 in select dropdown and CSS line-height
+- `[x]` Create `walkthrough.md`
+- `[x]` Update `index.html` to add Highlighter dropdown structure next to the text color picker
+- `[x]` Add highlighter menu, grids, and cell styles in `styles.css`
+- `[x]` Implement highlighter toggle, click listener, and selection-change state sync in `js/main.js`
+- `[x]` Convert text color picker button to a custom dropdown grid (presets + default color reset + custom picker) to prevent native OS popup from appearing at the top-left of the screen
+- `[x]` Redesign both dropdowns into a 6x4 square grid with a Default/Clear button at the top and a full-width "Custom Color..." button at the bottom
+- `[x]` Fix CSS naming collision by isolating color menus under the .color-picker-menu class, resolving layout clipping issues
+- `[x]` Center OS custom color picker dialog by placing transparent input elements directly inside the custom trigger buttons

@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meridian - Free Writing App</title>
+    <link rel="icon" type="image/png" href="build/icon.png">
+    <link rel="shortcut icon" href="build/icon.ico">
+    <script>
+        if (window.location.search.includes('test=true')) {
+            window.prompt = function() { return "Test Book"; };
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Montserrat:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- JSZip for EPUB export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="theme-charcoal">
+    <!-- Background glow elements for aesthetics -->
+    <div class="glow-bg"></div>
+
+    <!-- Collapsed sidebar mouse hover trigger zone -->
+    <div id="sidebar-trigger-zone" class="sidebar-trigger-zone"></div>
+
+    <div class="app-layout-wrapper">
+        <!-- COLLAPSIBLE LEFT SIDEBAR Explorer -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo" id="app-logo" style="cursor: pointer;" title="Go back home">
+                    <span class="logo-icon"><i data-lucide="feather"></i></span>
+                    <span class="logo-text">meridian</span>
+                </div>
+                <button id="btn-sidebar-collapse" class="icon-button" title="Collapse Sidebar">
+                    <i data-lucide="chevrons-left"></i>
+                </button>
+            </div>
+
+            <!-- Create Actions -->
+            <div class="sidebar-actions">
+                <button id="btn-new-file" class="secondary-btn btn-sm w-half" title="New Writing File">
+                    <i data-lucide="file-plus"></i> New File
+                </button>
+                <button id="btn-new-folder" class="secondary-btn btn-sm w-half" title="New Folder">
+                    <i data-lucide="folder-plus"></i> New Folder
+                </button>
+            </div>
+
+            <!-- Search input -->
+            <div class="sidebar-search-container">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="sidebar-search-input" placeholder="Search documents..." autocomplete="off">
+            </div>
+
+            <!-- Scrollable Document tree explorer -->
+            <div class="sidebar-tree-container">
+                <div class="tree-root" id="sidebar-tree">
+                    <!-- Tree elements injected via JS -->
+                </div>
+            </div>
+
+            <!-- Sidebar footer stats -->
+            <div class="sidebar-footer" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <div class="sidebar-summary-info">
+                    <span id="sidebar-files-count">0 files</span>
+                </div>
+                <a href="https://namle5696.gumroad.com/l/zmdin" target="_blank" class="support-btn" style="text-decoration: none; color: var(--text-muted); font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="coffee" style="width: 14px; height: 14px;"></i> Support the Developer
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN WINDOW -->
+        <div class="app-content-container">
+            <!-- HEADER -->
+            <header class="app-header">
+                <div class="header-left">
+                    <button id="btn-sidebar-expand" class="icon-button hidden" title="Expand Sidebar">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <!-- Active document path visualizer -->
+                    <div class="active-document-path" id="header-doc-path">
+                        <i data-lucide="file-text" class="path-icon"></i>
+                        <span id="header-doc-title">Select or create a file</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-export-book" class="icon-button" title="Compile Manuscript">
+                        <i data-lucide="book-open"></i>
+                    </button>
+                    <button id="btn-calendar-stats" class="icon-button" title="Daily Writing Stats">
+                        <i data-lucide="calendar"></i>
+                    </button>
+                    <button id="btn-settings" class="icon-button" title="Settings">
+                        <i data-lucide="settings"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <!-- HOME VIEW -->
+                <section id="view-home" class="view">
+                    <div class="home-container">
+                        <div class="home-hero">
+                            <h1 class="home-title">Meridian</h1>
+                            <p class="home-subtitle">Your distraction-free writing environment.</p>
+                        </div>
+                        <div class="home-actions">
+                            <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
+                                <button id="btn-create-workspace" class="primary-btn btn-lg home-btn" style="margin-bottom: 0;">
+                                    <i data-lucide="folder-plus"></i> Create New Book
+                                </button>
+                                <button id="btn-import-workspace" class="secondary-btn btn-lg home-btn" style="margin-bottom: 0;">
+                                    <i data-lucide="upload"></i> Import Backup
+                                </button>
+                                <input type="file" id="file-import-workspace" accept=".fsb" style="display: none;" />
+                            </div>
+                            <div class="workspaces-section">
+                                <h3>Or open an existing book:</h3>
+                                <div id="workspaces-list" class="workspaces-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- UNIFIED WORKSPACE VIEW -->
+                <section id="view-main" class="view active">
+                    <div class="main-workspace-grid">
+
+                        <!-- LEFT/MIDDLE: THE EDITOR -->
+                        <div class="editor-column">
+                            <div class="editor-outer-container">
+                                <!-- Top Floating Header -->
+                                <div class="editor-header">
+                                    <div class="editor-title-container">
+                                        <input type="text" id="session-title" placeholder="Untitled Stream..." value=""
+                                            disabled />
+                                    </div>
+                                    <div class="editor-meta">
+                                        <div class="meta-item time-remaining-indicator">
+                                            <i data-lucide="timer"></i>
+                                            <span id="indicator-time">--:--</span>
+                                        </div>
+                                        <div class="meta-item word-count-indicator">
+                                            <i data-lucide="pencil"></i>
+                                            <span id="indicator-words">0 words</span>
+                                        </div>
+                                        <div class="meta-item flow-indicator-wrapper">
+                                            <div class="flow-pulse-dot" id="flow-pulse"></div>
+                                            <span id="indicator-wpm">0 WPM</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- Rich Text Toolbar -->
+                                <div class="rich-text-toolbar" id="rich-text-toolbar">
+                                    <select id="text-format-select" class="toolbar-select" title="Text Style" style="width: 130px;">
+                                        <option value="P" selected>Normal Text</option>
+                                        <option value="H1">Title</option>
+                                        <option value="H2">Subtitle</option>
+                                        <option value="H3">Heading 1</option>
+                                        <option value="H4">Heading 2</option>
+                                        <option value="H5">Heading 3</option>
+                                    </select>
+                                    <select id="font-family-select" class="toolbar-select" title="Font Family">
+                                        <option value="Arial">Arial</option>
+                                        <option value="Comic Sans MS">Comic Sans MS</option>
+                                        <option value="Courier New">Courier New</option>
+                                        <option value="EB Garamond" selected>EB Garamond</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Helvetica">Helvetica</option>
+                                        <option value="Inter">Inter</option>
+                                        <option value="Lora">Lora</option>
+                                        <option value="Merriweather">Merriweather</option>
+                                        <option value="Montserrat">Montserrat</option>
+                                        <option value="Outfit">Outfit</option>
+                                        <option value="Playfair Display">Playfair Display</option>
+                                        <option value="Roboto">Roboto</option>
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Trebuchet MS">Trebuchet MS</option>
+                                        <option value="Verdana">Verdana</option>
+                                    </select>
+                                    <select id="font-size-select" class="toolbar-select" title="Font Size">
+                                        <option value="1">Smallest</option>
+                                        <option value="2">Smaller</option>
+                                        <option value="3" selected>Normal</option>
+                                        <option value="4">Large</option>
+                                        <option value="5">Very Large</option>
+                                        <option value="6">Extra Large</option>
+                                        <option value="7">Huge</option>
+                                    </select>
+                                    <select id="line-spacing-select" class="toolbar-select" title="Line Spacing">
+                                        <option value="0.5">0.5</option>
+                                        <option value="0.6">0.6</option>
+                                        <option value="0.7">0.7</option>
+                                        <option value="0.8">0.8</option>
+                                        <option value="0.9">0.9</option>
+                                        <option value="1.0" selected>1.0</option>
+                                        <option value="1.1">1.1</option>
+                                        <option value="1.2">1.2</option>
+                                        <option value="1.3">1.3</option>
+                                        <option value="1.4">1.4</option>
+                                        <option value="1.5">1.5</option>
+                                        <option value="2.0">2.0</option>
+                                        <option value="2.5">2.5</option>
+                                        <option value="3.0">3.0</option>
+                                    </select>
+                                    <div class="toolbar-divider"></div>
+                                    <button class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)">
+                                        <i data-lucide="bold"></i>
+                                    </button>
+                                    <button class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)">
+                                        <i data-lucide="italic"></i>
+                                    </button>
+                                    <button class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)">
+                                        <i data-lucide="underline"></i>
+                                    </button>
+                                    <div class="toolbar-dropdown-container" id="text-color-dropdown-container">
+                                        <button class="toolbar-btn text-color-btn" id="btn-text-color" title="Text Color">
+                                            <i data-lucide="palette"></i>
+                                            <span class="color-indicator" id="text-color-indicator"></span>
+                                        </button>
+                                        <div class="color-picker-menu" id="text-color-menu">
+                                            <button class="dropdown-action-btn clear-color-btn" id="btn-text-color-default" data-color="default">
+                                                <i data-lucide="baseline"></i> Default Color
+                                            </button>
+                                            <div class="color-grid square-grid">
+                                                <!-- Row 1: Brights -->
+                                                <button class="color-cell" data-color="#ef4444" title="Red" style="background-color: #ef4444;"></button>
+                                                <button class="color-cell" data-color="#f97316" title="Orange" style="background-color: #f97316;"></button>
+                                                <button class="color-cell" data-color="#eab308" title="Yellow" style="background-color: #eab308;"></button>
+                                                <button class="color-cell" data-color="#22c55e" title="Green" style="background-color: #22c55e;"></button>
+                                                <button class="color-cell" data-color="#3b82f6" title="Blue" style="background-color: #3b82f6;"></button>
+                                                <button class="color-cell" data-color="#a855f7" title="Purple" style="background-color: #a855f7;"></button>
+                                                
+                                                <!-- Row 2: Pastels -->
+                                                <button class="color-cell" data-color="#fee2e2" title="Light Red" style="background-color: #fee2e2;"></button>
+                                                <button class="color-cell" data-color="#ffedd5" title="Light Orange" style="background-color: #ffedd5;"></button>
+                                                <button class="color-cell" data-color="#fef9c3" title="Light Yellow" style="background-color: #fef9c3;"></button>
+                                                <button class="color-cell" data-color="#dcfce7" title="Light Green" style="background-color: #dcfce7;"></button>
+                                                <button class="color-cell" data-color="#dbeafe" title="Light Blue" style="background-color: #dbeafe;"></button>
+                                                <button class="color-cell" data-color="#f3e8ff" title="Light Purple" style="background-color: #f3e8ff;"></button>
+                                                
+                                                <!-- Row 3: Muted/Rich -->
+                                                <button class="color-cell" data-color="#991b1b" title="Dark Red" style="background-color: #991b1b;"></button>
+                                                <button class="color-cell" data-color="#c2410c" title="Dark Orange" style="background-color: #c2410c;"></button>
+                                                <button class="color-cell" data-color="#854d0e" title="Dark Yellow" style="background-color: #854d0e;"></button>
+                                                <button class="color-cell" data-color="#166534" title="Dark Green" style="background-color: #166534;"></button>
+                                                <button class="color-cell" data-color="#1e40af" title="Dark Blue" style="background-color: #1e40af;"></button>
+                                                <button class="color-cell" data-color="#6b21a8" title="Dark Purple" style="background-color: #6b21a8;"></button>
+                                                
+                                                <!-- Row 4: Grayscale -->
+                                                <button class="color-cell" data-color="#000000" title="Black" style="background-color: #000000;"></button>
+                                                <button class="color-cell" data-color="#374151" title="Charcoal" style="background-color: #374151;"></button>
+                                                <button class="color-cell" data-color="#9ca3af" title="Gray" style="background-color: #9ca3af;"></button>
+                                                <button class="color-cell" data-color="#e5e7eb" title="Light Gray" style="background-color: #e5e7eb;"></button>
+                                                <button class="color-cell" data-color="#ffffff" title="White" style="background-color: #ffffff; border: 1px solid var(--border-color);"></button>
+                                                <button class="color-cell" data-color="#78350f" title="Brown" style="background-color: #78350f;"></button>
+                                            </div>
+                                            <button class="dropdown-action-btn custom-trigger" id="btn-text-color-custom">
+                                                <i data-lucide="pipette"></i> Custom Color...
+                                                <input type="color" id="text-color-picker">
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="toolbar-dropdown-container" id="highlighter-dropdown-container">
+                                        <button class="toolbar-btn highlight-btn" id="btn-text-highlight" title="Highlight Color">
+                                            <i data-lucide="highlighter"></i>
+                                            <span class="color-indicator" id="text-highlight-indicator"></span>
+                                        </button>
+                                        <div class="color-picker-menu" id="highlight-menu">
+                                            <button class="dropdown-action-btn clear-color-btn" id="btn-highlight-clear" data-color="transparent">
+                                                <i data-lucide="droplet-off"></i> No Highlight
+                                            </button>
+                                            <div class="color-grid square-grid">
+                                                <!-- Row 1: Brights -->
+                                                <button class="color-cell" data-color="#f87171" title="Red" style="background-color: #f87171;"></button>
+                                                <button class="color-cell" data-color="#fb923c" title="Orange" style="background-color: #fb923c;"></button>
+                                                <button class="color-cell" data-color="#facc15" title="Yellow" style="background-color: #facc15;"></button>
+                                                <button class="color-cell" data-color="#4ade80" title="Green" style="background-color: #4ade80;"></button>
+                                                <button class="color-cell" data-color="#60a5fa" title="Blue" style="background-color: #60a5fa;"></button>
+                                                <button class="color-cell" data-color="#c084fc" title="Purple" style="background-color: #c084fc;"></button>
+                                                
+                                                <!-- Row 2: Pastels -->
+                                                <button class="color-cell" data-color="#fee2e2" title="Light Red" style="background-color: #fee2e2;"></button>
+                                                <button class="color-cell" data-color="#ffedd5" title="Light Orange" style="background-color: #ffedd5;"></button>
+                                                <button class="color-cell" data-color="#fef9c3" title="Light Yellow" style="background-color: #fef9c3;"></button>
+                                                <button class="color-cell" data-color="#dcfce7" title="Light Green" style="background-color: #dcfce7;"></button>
+                                                <button class="color-cell" data-color="#dbeafe" title="Light Blue" style="background-color: #dbeafe;"></button>
+                                                <button class="color-cell" data-color="#f3e8ff" title="Light Purple" style="background-color: #f3e8ff;"></button>
+                                                
+                                                <!-- Row 3: Muted/Rich -->
+                                                <button class="color-cell" data-color="#ef4444" title="Dark Red" style="background-color: #ef4444;"></button>
+                                                <button class="color-cell" data-color="#f97316" title="Dark Orange" style="background-color: #f97316;"></button>
+                                                <button class="color-cell" data-color="#eab308" title="Dark Yellow" style="background-color: #eab308;"></button>
+                                                <button class="color-cell" data-color="#22c55e" title="Dark Green" style="background-color: #22c55e;"></button>
+                                                <button class="color-cell" data-color="#3b82f6" title="Dark Blue" style="background-color: #3b82f6;"></button>
+                                                <button class="color-cell" data-color="#a855f7" title="Dark Purple" style="background-color: #a855f7;"></button>
+                                                
+                                                <!-- Row 4: Grayscale -->
+                                                <button class="color-cell" data-color="#000000" title="Black" style="background-color: #000000;"></button>
+                                                <button class="color-cell" data-color="#374151" title="Charcoal" style="background-color: #374151;"></button>
+                                                <button class="color-cell" data-color="#9ca3af" title="Gray" style="background-color: #9ca3af;"></button>
+                                                <button class="color-cell" data-color="#e5e7eb" title="Light Gray" style="background-color: #e5e7eb;"></button>
+                                                <button class="color-cell" data-color="#ffffff" title="White" style="background-color: #ffffff; border: 1px solid var(--border-color);"></button>
+                                                <button class="color-cell" data-color="#78350f" title="Brown" style="background-color: #78350f;"></button>
+                                            </div>
+                                            <button class="dropdown-action-btn custom-trigger" id="btn-highlight-custom">
+                                                <i data-lucide="pipette"></i> Custom Color...
+                                                <input type="color" id="highlight-color-picker">
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="toolbar-divider"></div>
+                                    <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List">
+                                        <i data-lucide="list"></i>
+                                    </button>
+                                    <button class="toolbar-btn" data-command="insertOrderedList" title="Numbered List">
+                                        <i data-lucide="list-ordered"></i>
+                                    </button>
+                                    <div class="toolbar-divider"></div>
+                                    <button class="toolbar-btn" data-command="justifyLeft" title="Align Left">
+                                        <i data-lucide="align-left"></i>
+                                    </button>
+                                    <button class="toolbar-btn" data-command="justifyCenter" title="Align Center">
+                                        <i data-lucide="align-center"></i>
+                                    </button>
+                                    <button class="toolbar-btn" data-command="justifyRight" title="Align Right">
+                                        <i data-lucide="align-right"></i>
+                                    </button>
+                                    <div class="toolbar-divider"></div>
+                                </div>
+
+                                <!-- Text Area (The Sacred Writer Space) -->
+                                <div class="text-area-wrapper">
+                                    <div id="editor-textarea" class="rich-text-editor" contenteditable="true" data-placeholder="Type here. Do not stop. Keep your hands moving..." spellcheck="false"></div>
+                                    <div class="editor-footer-status">
+                                        <span id="editor-footer-words">0 words</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Floating Toolbar (appears on hover / movement) -->
+                                <div class="editor-controls-bar">
+                                    <button id="btn-editor-sound-toggle" class="control-action-btn hidden"
+                                        title="Toggle Sound">
+                                        <i data-lucide="volume-2"></i>
+                                    </button>
+                                    <button id="btn-editor-ambient-toggle" class="control-action-btn hidden"
+                                        title="Toggle Ambient">
+                                        <i data-lucide="waves"></i>
+                                    </button>
+                                    <div class="spacer"></div>
+                                    <button id="btn-abandon-session" class="danger-btn btn-sm btn-outline hidden">
+                                        <i data-lucide="x"></i> Give Up
+                                    </button>
+                                    <button id="btn-complete-session" class="success-btn btn-sm hidden">
+                                        <i data-lucide="check"></i> Finish Session
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RIGHT: SETUP SIDEBAR TAB -->
+                        <button id="btn-show-setup-tab" class="setup-tab-handle" title="Show Settings">
+                            <i data-lucide="chevron-left"></i><span style="font-size: 10px; margin-top: 4px; font-weight: bold; color: var(--text-muted); writing-mode: vertical-rl; transform: rotate(180deg);">SETTINGS</span>
+                        </button>
+                        
+                        <!-- RIGHT: SETUP SIDEBAR -->
+                        <div class="setup-sidebar" id="setup-sidebar">
+                            <!-- Close button at top right -->
+                            <button id="btn-setup-collapse" class="icon-button"
+                                style="position: absolute; top: -5px; right: 0px;" title="Hide Settings">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                            <!-- Session Settings -->
+                            <div class="glass-card setup-card" style="margin-top: 30px;">
+                                <div id="session-settings-section">
+                                    <h2><i data-lucide="sliders"></i> Session Settings</h2>
+
+                                    <div class="form-group">
+                                        <label>Writing Goal Mode</label>
+                                        <div class="toggle-group" id="goal-type-toggle">
+                                            <button class="toggle-btn active" data-type="time">Timer</button>
+                                            <button class="toggle-btn" data-type="words">Word Count</button>
+                                            <button class="toggle-btn" data-type="infinite">Endless</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Time Options -->
+                                    <div class="form-group goal-option" id="option-time">
+                                        <label for="select-time">Duration</label>
+                                        <div class="preset-selector" id="time-presets">
+                                            <button class="preset-btn" data-value="1">1 Min</button>
+                                            <button class="preset-btn active" data-value="5">5 Min</button>
+                                            <button class="preset-btn" data-value="10">10 Min</button>
+                                            <button class="preset-btn" data-value="15">15 Min</button>
+                                            <button class="preset-btn" data-value="custom">Custom</button>
+                                        </div>
+                                        <div class="custom-input-container hidden" id="custom-time-container">
+                                            <input type="number" id="input-custom-time" min="1" max="180" value="3">
+                                            <span>minutes</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Word Options -->
+                                    <div class="form-group goal-option hidden" id="option-words">
+                                        <label for="select-words">Target Words</label>
+                                        <div class="preset-selector" id="words-presets">
+                                            <button class="preset-btn" data-value="100">100</button>
+                                            <button class="preset-btn active" data-value="250">250</button>
+                                            <button class="preset-btn" data-value="500">500</button>
+                                            <button class="preset-btn" data-value="1000">1000</button>
+                                            <button class="preset-btn" data-value="custom">Custom</button>
+                                        </div>
+                                        <div class="custom-input-container hidden" id="custom-words-container">
+                                            <input type="number" id="input-custom-words" min="10" max="10000" value="150">
+                                            <span>words</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Writing Difficulty Mode -->
+                                    <div class="form-group">
+                                        <label>Writing Mode</label>
+                                        <div class="mode-cards">
+                                            <div class="mode-card active" data-mode="standard">
+                                                <div class="mode-icon"><i data-lucide="pen-tool"></i></div>
+                                                <div class="mode-info">
+                                                    <div class="mode-title">Standard</div>
+                                                    <div class="mode-desc">A focus timer with audio cues. No penalties.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mode-card" data-mode="nudge">
+                                                <div class="mode-icon danger-nudge"><i data-lucide="eye-off"></i></div>
+                                                <div class="mode-info">
+                                                    <div class="mode-title">Flow State (Nudge)</div>
+                                                    <div class="mode-desc">Stop typing for 5s and the screen blurs.</div>
+                                                </div>
+                                            </div>
+                                            <div class="mode-card" data-mode="hardcore">
+                                                <div class="mode-icon danger-hardcore"><i data-lucide="flame"></i></div>
+                                                <div class="mode-info">
+                                                    <div class="mode-title">Hardcore (Fade)</div>
+                                                    <div class="mode-desc">Stop typing for 5s and your text fades and burns.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr
+                                            style="border: 0; border-top: 1px solid var(--border-color); opacity: 0.5; margin: 20px 0;">
+                                    </div>
+                                </div>
+
+                                    <!-- Ambient Settings -->
+                                    <h2><i data-lucide="sparkles"></i> Focus Settings</h2>
+
+
+
+                                    <!-- Audio Customizer -->
+                                    <div class="form-group">
+                                        <label>Focus Atmosphere</label>
+                                        <div class="audio-toggle-card">
+                                            <div class="audio-control-row">
+                                                <span class="audio-label"><i data-lucide="keyboard"></i> Typewriter
+                                                    Keystrokes</span>
+                                                <label class="switch">
+                                                    <input type="checkbox" id="chk-typewriter">
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                            <div class="audio-selector-box hidden" id="typewriter-noise-settings">
+                                                <label for="typewriter-profile" class="small-label">Keystroke
+                                                    Noise</label>
+                                                <select id="typewriter-profile" class="custom-select">
+                                                    <option value="mechanical">Mechanical (Cherry MX Blue)</option>
+                                                    <option value="vintage">Classic Typewriter (Heavy)</option>
+                                                    <option value="bubble">Soft Bubble (Pop)</option>
+                                                </select>
+                                            </div>
+                                            <div class="audio-control-row">
+                                                <span class="audio-label"><i data-lucide="music"></i> Focus Ambient
+                                                    Noise</span>
+                                                <label class="switch">
+                                                    <input type="checkbox" id="chk-ambient">
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                            <div class="audio-selector-box hidden" id="ambient-noise-settings">
+                                                <label for="select-ambient-type" class="small-label">Ambient
+                                                    Noise</label>
+                                                <select id="select-ambient-type" class="custom-select">
+                                                    <option value="brown">Brownian Noise (Deep Focus)</option>
+                                                    <option value="pink">Pink Noise (Gentle Stream)</option>
+                                                    <option value="white">White Noise (Pure Static)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Call To Action -->
+                                    <button id="btn-start-session" class="primary-btn btn-lg w-full">
+                                        <span>Start Writing Session</span>
+                                        <i data-lucide="play"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger overlays for Flow Mode / Hardcore -->
+                        <div id="overlay-danger" class="overlay-danger"></div>
+                        <div id="hardcore-countdown" class="hardcore-countdown hidden">
+                            <div class="countdown-warning">STOPPED! FADING IN <span id="countdown-sec">5.0</span>s</div>
+                        </div>
+                </section>
+
+                <!-- SESSION COMPLETE / RESULTS VIEW -->
+                <section id="view-results" class="view">
+                    <div class="results-container glass-card">
+                        <div class="results-header" id="results-header-box">
+                            <div class="status-badge success"><i data-lucide="award"></i> Success</div>
+                            <h2 id="results-title">Session Complete!</h2>
+                            <p id="results-motivation">Excellent work! You entered the flow state and kept writing.</p>
+                        </div>
+
+                        <div class="stats-summary-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="res-stat-words">0</div>
+                                <div class="stat-label">Words Written</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="res-stat-wpm">0</div>
+                                <div class="stat-label">Avg WPM</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="res-stat-time">0m</div>
+                                <div class="stat-label">Time Engaged</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="res-stat-goal">100%</div>
+                                <div class="stat-label">Goal Achieved</div>
+                            </div>
+                        </div>
+
+                        <!-- Velocity visual graph -->
+                        <div class="graph-card">
+                            <h3>Writing Velocity (Words per minute over time)</h3>
+                            <div class="graph-container">
+                                <svg id="velocity-svg" viewBox="0 0 500 150" preserveAspectRatio="none">
+                                    <!-- Paths injected via JS -->
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="results-actions">
+                            <button id="btn-copy-result" class="secondary-btn">
+                                <i data-lucide="copy"></i> Copy to Clipboard
+                            </button>
+                            <div class="dropdown-export" style="position: relative;">
+                                <button id="btn-export" class="secondary-btn">
+                                    <i data-lucide="download"></i> Export Document <i data-lucide="chevron-down"
+                                        style="width: 14px; margin-left: 4px;"></i>
+                                </button>
+                                <div class="dropdown-menu" id="export-menu">
+                                    <button class="dropdown-item" id="export-md">Markdown (.md)</button>
+                                    <button class="dropdown-item" id="export-txt">Plain Text (.txt)</button>
+                                    <button class="dropdown-item" id="export-html">Web Page (.html)</button>
+                                    <button class="dropdown-item" id="export-rtf">Rich Text (.rtf)</button>
+                                    <button class="dropdown-item" id="export-docx">Word Document (.docx)</button>
+                                    <button class="dropdown-item" id="export-epub">EPUB Publication (.epub)</button>
+                                    <button class="dropdown-item" id="export-pdf">PDF Document (.pdf)</button>
+                                </div>
+                            </div>
+                            <div class="spacer"></div>
+                            <button id="btn-home" class="primary-btn">
+                                <span>Return to Dashboard</span>
+                                <i data-lucide="home"></i>
+                            </button>
+                        </div>
+
+                        <!-- Preview of what was written -->
+                        <div class="writing-preview-card" id="results-preview-box">
+                            <h3>Session Preview</h3>
+                            <div class="preview-text" id="results-preview-text">
+                                Preview of your text goes here...
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL / SIDEBAR -->
+    <div class="modal-backdrop" id="modal-settings-backdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i data-lucide="settings"></i> Application Settings</h3>
+                <button class="modal-close" id="btn-close-settings"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Audio Synth Configuration</h4>
+                    <div class="settings-control">
+                        <div class="flex-between">
+                            <label for="volume-typewriter">Typewriter Keystroke Volume</label>
+                            <span class="range-val" id="val-vol-typewriter">75%</span>
+                        </div>
+                        <input type="range" id="volume-typewriter" min="0" max="100" value="75">
+                    </div>
+                    <div class="settings-control">
+                        <label for="typewriter-profile">Keystroke Sound Profile</label>
+                        <select id="typewriter-profile" class="custom-select">
+                            <option value="mechanical">Mechanical (Tactile Switches)</option>
+                            <option value="vintage">Classic Typewriter (Metal & Heavy)</option>
+                            <option value="bubble">Chippy Bubble (Softer Clicks)</option>
+                        </select>
+                    </div>
+                    <div class="settings-control">
+                        <div class="flex-between">
+                            <label for="volume-ambient">Ambient Noise Volume</label>
+                            <span class="range-val" id="val-vol-ambient">40%</span>
+                        </div>
+                        <input type="range" id="volume-ambient" min="0" max="100" value="40">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Appearance</h4>
+                    <div class="settings-control">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-dark-mode" checked>
+                            <span>Enable Dark Mode</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h4>Writing Preferences</h4>
+                    <div class="settings-control">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-typewriter-bell" checked>
+                            <span>Play carriage return bell on paragraphs</span>
+                        </label>
+                    </div>
+                    <div class="settings-control">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-auto-save" checked>
+                            <span>Auto-save writing directly to documents</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="primary-btn w-full" id="btn-save-settings">Save & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDAR STATS MODAL -->
+    <div class="modal-backdrop" id="modal-calendar-backdrop">
+        <div class="modal-card calendar-modal-card">
+            <div class="modal-header">
+                <h3><i data-lucide="calendar"></i> Daily Writing Output</h3>
+                <button class="modal-close" id="btn-close-calendar"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="calendar-navigation">
+                    <button id="btn-prev-month" class="icon-button"><i data-lucide="chevron-left"></i></button>
+                    <h4 id="calendar-month-year">June 2026</h4>
+                    <button id="btn-next-month" class="icon-button"><i data-lucide="chevron-right"></i></button>
+                </div>
+                
+                <div class="calendar-grid-header">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="calendar-grid" id="calendar-days-grid">
+                    <!-- Days dynamically injected via JS -->
+                </div>
+                
+                <div class="calendar-summary">
+                    <div class="cal-stat-card">
+                        <span class="cal-stat-label">Month Total</span>
+                        <span class="cal-stat-value" id="cal-stat-total">0 words</span>
+                    </div>
+                    <div class="cal-stat-card">
+                        <span class="cal-stat-label">Daily Average</span>
+                        <span class="cal-stat-value" id="cal-stat-avg">0 words</span>
+                    </div>
+                    <div class="cal-stat-card">
+                        <span class="cal-stat-label">Writing Streak</span>
+                        <span class="cal-stat-value" id="cal-stat-streak">0 days</span>
+                    </div>
+                </div>
+                
+                <div class="calendar-goal-settings" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">Daily Goal Settings</h4>
+                    <div class="settings-control" style="margin-bottom: 12px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-show-daily-goal" checked>
+                            <span>Show daily word count goal widget</span>
+                        </label>
+                    </div>
+                    <div class="settings-control">
+                        <div class="flex-between">
+                            <label for="input-daily-goal">Daily Word Goal</label>
+                        </div>
+                        <input type="number" id="input-daily-goal" class="rename-input" min="0" max="100000" value="500" style="padding: 8px; margin-top: 8px; width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Statistics Modal -->
+    <div class="modal-backdrop" id="modal-doc-stats-backdrop" style="display: none;">
+        <div class="modal-card" style="max-width: 420px;">
+            <div class="modal-header">
+                <h2>Document Statistics</h2>
+                <button class="modal-close" id="btn-close-doc-stats"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 15px 0 5px;">
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Title</span>
+                    <strong id="doc-stat-title" style="color: var(--text-color); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Words</span>
+                    <strong id="doc-stat-words" style="color: var(--text-color);">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Characters (with spaces)</span>
+                    <strong id="doc-stat-chars-spaces" style="color: var(--text-color);">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Characters (no spaces)</span>
+                    <strong id="doc-stat-chars-nospaces" style="color: var(--text-color);">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Paragraphs</span>
+                    <strong id="doc-stat-paragraphs" style="color: var(--text-color);">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Estimated Reading Time</span>
+                    <strong id="doc-stat-reading" style="color: var(--text-color);">-</strong>
+                </div>
+                <div class="stat-item-row" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border-color);">
+                    <span style="color: var(--text-muted);">Estimated Speaking Time</span>
+                    <strong id="doc-stat-speaking" style="color: var(--text-color);">-</strong>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                <button class="primary-btn btn-sm" id="btn-close-doc-stats-ok">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Core -->
+    <script src="js/core/state.js"></script>
+    <script src="js/core/dom.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/storage.js"></script>
+    <script src="js/core/menu-handler.js"></script>
+    
+    <!-- Services -->
+    <script src="js/services/audio.js"></script>
+    <script src="js/services/ui.js"></script>
+    <script src="js/services/settings.js?v=4"></script>
+    
+    <!-- Features -->
+    <script src="js/features/workspaces/workspaces.js"></script>
+    <script src="js/features/sidebar/sidebar.js"></script>
+    <script src="js/features/sidebar/file-operations.js"></script>
+    <script src="js/features/editor/editor.js"></script>
+    <script src="js/features/editor/danger.js"></script>
+    <script src="js/features/editor/stats.js"></script>
+    <script src="js/features/editor/export.js"></script>
+    <script src="js/features/editor/compile-ui.js"></script>
+    
+    <!-- Entry Point -->
+    <script src="js/main.js?v=4"></script>
+    
+    <!-- COMPILE / EXPORT MODAL -->
+    <div class="modal-backdrop" id="modal-compile-backdrop">
+        <div class="modal-card modal-large" style="max-width: 800px; width: 90%; max-height: 90vh;">
+            <div class="modal-header">
+                <h3><i data-lucide="book-open"></i> Compile Manuscript</h3>
+                <button class="modal-close" id="btn-close-compile"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <div class="compile-grid" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px;">
+                    <!-- Left Column: Compile options -->
+                    <div class="compile-options-col" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="settings-section">
+                            <h4 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">Export Format</h4>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-format-select" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Compile For</label>
+                                <select id="compile-format-select" class="custom-select">
+                                    <option value="md">Markdown (.md)</option>
+                                    <option value="txt">Plain Text (.txt)</option>
+                                    <option value="html">Web Page (.html)</option>
+                                    <option value="rtf">Rich Text Format (.rtf)</option>
+                                    <option value="docx">Word Document (.docx)</option>
+                                    <option value="epub">EPUB Publication (.epub)</option>
+                                    <option value="pdf">PDF Document (.pdf)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="settings-section" id="compile-pdf-settings-section" style="display: none;">
+                            <h4 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">Page & Layout Settings</h4>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-template-select" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Manuscript Theme</label>
+                                <select id="compile-template-select" class="custom-select">
+                                    <option value="classic">Classic Serif (Garamond/Georgia)</option>
+                                    <option value="romance">Romantic & Decorative (Elegant Scripts)</option>
+                                    <option value="modern">Modern Standard (Lato/Merriweather)</option>
+                                    <option value="zen">Zen Minimalist (Outfit/Inter Monospace)</option>
+                                    <option value="typewriter">Retro Typewriter (Courier New)</option>
+                                </select>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-trim-select" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Trim Size</label>
+                                <select id="compile-trim-select" class="custom-select">
+                                    <option value="letter">US Letter (8.5" x 11")</option>
+                                    <option value="trade">US Trade Paperback (6" x 9")</option>
+                                    <option value="digest">US Digest (5.5" x 8.5")</option>
+                                    <option value="pocket">Pocket Book (4.25" x 6.87")</option>
+                                </select>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-headers-select" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Running Headers / Footers</label>
+                                <select id="compile-headers-select" class="custom-select">
+                                    <option value="none">None (Page Numbers Only)</option>
+                                    <option value="classic">Book Title / Author Running Headers</option>
+                                </select>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-ornament-select" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Title Page Flourish</label>
+                                <select id="compile-ornament-select" class="custom-select">
+                                    <option value="none">None</option>
+                                    <option value="quill">Quill Icon</option>
+                                    <option value="star">Minimalist Star</option>
+                                    <option value="flourish">Floral Flourish (~ ~ ~)</option>
+                                </select>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 10px;">
+                                <label class="checkbox-label" style="display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="compile-drop-caps" style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                    <span>Enable Drop Caps on Chapter Start</span>
+                                </label>
+                            </div>
+
+                            <!-- Live Style Specimen Preview Container -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: bold;">
+                                <span>Live Layout Preview</span>
+                                <span id="preview-trim-label" style="font-weight: normal; color: var(--primary);">US Letter</span>
+                            </div>
+                            <div class="layout-specimen-preview" style="border: none; border-radius: 4px; overflow: hidden; background: #ffffff; color: #111111; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                <div id="compile-live-preview-box" class="specimen-classic">
+                                    <div class="preview-header" style="display: none; justify-content: space-between; font-size: 0.6em; border-bottom: 1px solid #dddddd; padding-bottom: 3px; margin-bottom: 8px; color: #555555; text-transform: uppercase; letter-spacing: 0.5px; font-family: inherit;">
+                                        <span id="preview-header-author">Author Name</span>
+                                        <span id="preview-header-title">Book Title</span>
+                                    </div>
+                                    <div class="preview-ornament" style="text-align: center; margin: 4px 0; font-size: 1.1em; color: #555555;"></div>
+                                    <div class="preview-title" style="text-align: center; font-size: 1.1em; font-weight: bold; margin-bottom: 8px;">Chapter 1: The Crossing</div>
+                                    <p class="compile-preview-text" style="font-size: 0.8em; margin: 0; line-height: 1.5; text-align: justify; text-indent: 1.5em; position: relative;">
+                                        <span class="preview-drop-cap" style="display: none; float: left; font-size: 2.8em; line-height: 0.85; margin-right: 4px; margin-top: 1px; font-weight: bold;">O</span>
+                                        <span class="preview-first-word-rest" style="display: none;">nce</span>
+                                        <span class="preview-first-word-normal">Once</span> upon a time, they embarked on a journey across the ancient coordinates of meridian, seeking a pathway that would align their writings with the stars.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">Book Metadata</h4>
+                            <div class="settings-control" style="margin-bottom: 12px;">
+                                <label for="compile-author-input" style="display: block; font-size: 0.88rem; font-weight: 500; margin-bottom: 6px;">Author Name</label>
+                                <input type="text" id="compile-author-input" class="rename-input" style="padding: 10px;" placeholder="Author Name" value="Meridian Writer">
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <h4 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">Formatting & Structure</h4>
+                            <div class="settings-control" style="margin-bottom: 10px;">
+                                <label class="checkbox-label" style="display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="compile-include-folder-names" checked style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                    <span>Include Folder Names as Headings</span>
+                                </label>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 10px;">
+                                <label class="checkbox-label" style="display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="compile-include-doc-titles" checked style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                    <span>Include Document Titles as Headings</span>
+                                </label>
+                            </div>
+                            <div class="settings-control" style="margin-bottom: 10px;">
+                                <label class="checkbox-label" style="display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none;">
+                                    <input type="checkbox" id="compile-page-breaks-folders" checked style="accent-color: var(--primary); width: 16px; height: 16px;">
+                                    <span>Page break before each folder</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Outline Tree -->
+                    <div class="compile-tree-col" style="display: flex; flex-direction: column; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 16px; height: 400px; max-height: 450px;">
+                        <div class="flex-between" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <h4 style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin: 0;">Manuscript Content</h4>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="secondary-btn btn-sm" id="btn-compile-select-all" style="padding: 4px 8px; font-size: 0.75rem;">Select All</button>
+                                <button class="secondary-btn btn-sm" id="btn-compile-deselect-all" style="padding: 4px 8px; font-size: 0.75rem;">Clear</button>
+                            </div>
+                        </div>
+                        <div class="compile-tree-container" id="compile-tree-list" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; margin-top: 10px;">
+                            <!-- Checklist items injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 20px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="secondary-btn" id="btn-cancel-compile" style="margin: 0; padding: 10px 20px; font-size: 0.9rem;">Cancel</button>
+                <button class="primary-btn" id="btn-trigger-compile" style="margin: 0; padding: 10px 20px; font-size: 0.9rem;">
+                    <span>Compile & Download</span>
+                    <i data-lucide="download"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Goal Widget & Tab -->
+    <button id="btn-show-daily-goal-tab" class="goal-tab-handle" title="Show Goal">
+        <i data-lucide="chevron-left"></i><span style="font-size: 10px; margin-left: 4px; font-weight: bold; color: var(--text-muted);">GOAL</span>
+    </button>
+    <div id="daily-goal-widget" class="glass-card" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; padding: 12px 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; font-weight: bold;">Daily Goal</span>
+            <strong id="daily-goal-text" style="font-size: 1.1rem; color: var(--text-color);">0 / 500</strong>
+        </div>
+        <button id="btn-hide-daily-goal" class="icon-button" style="padding: 4px; margin-left: auto;" title="Hide Goal"><i data-lucide="chevron-right"></i></button>
+    </div>
+
+    <!-- Hidden Print Container -->
+    <div id="print-manuscript-container" class="print-only"></div>
+</body>
+
+</html>
